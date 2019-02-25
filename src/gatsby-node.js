@@ -34,15 +34,26 @@ exports.sourceNodes = async ({
 
     const accumulator = await previousPromise;
 
+    const postsNodeArray = Object.values(postsNode);
+    const usersNodeArray = Object.values(usersNode);
+
+    // add author info to posts
+    const postsNodeArrayWithAuthor = postsNodeArray.map(post => {
+      return {
+        ...post,
+        author: usersNode[post.creatorId]
+      };
+    });
+
     // concat with previous values
     return {
       Post: {
         ...accumulator.Post,
-        nodes: accumulator.Post.nodes.concat(Object.values(postsNode)),
+        nodes: accumulator.Post.nodes.concat(postsNodeArrayWithAuthor),
       },
       User: {
         ...accumulator.User,
-        nodes:  accumulator.User.nodes.concat(Object.values(usersNode)),
+        nodes:  accumulator.User.nodes.concat(usersNodeArray),
       }
     };
   }, {
