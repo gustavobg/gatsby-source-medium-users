@@ -1,3 +1,5 @@
+"use strict";
+
 const axios = require(`axios`);
 const crypto = require('crypto');
 
@@ -11,52 +13,72 @@ const fetch = (username, limit = 100) => {
   return axios.get(url);
 };
 
-exports.sourceNodes = async (
-  { actions, createNodeId, createContentDigest },
-  { usernames, limit }
-) => {
+exports.sourceNodes = async ({
+  actions,
+  createNodeId,
+  createContentDigest
+}, {
+  usernames,
+  limit
+}) => {
+  const {
+    createNode
+  } = actions;
 
-  const { createNode } = actions;
-
-  // accumulate data from users
-  const resources = usernames.reduce(async(accumulator, username) => {
+  // extract and concatenate data from users
+  const resources = usernames.reduce(async (previousPromise, username) => {
     const result = await fetch(username, limit);
     const json = JSON.parse(stripPayloadPrefix(result.data));
     const postsNode = json.payload.references.Post;
-    const userNode = json.payload.references.User;
-    const previousPromise = await accumulator;
+    const usersNode = json.payload.references.User;
+
+    const accumulator = await previousPromise;
+
+    // concat with previous values
     return {
-        Posts: previousPromise.Posts.concat(Object.values(postsNode)),
-        Users: previousPromise.Users.concat(Object.values(userNode))
+      Post: {
+        ...accumulator.Post,
+        nodes: accumulator.Post.nodes.concat(Object.values(postsNode)),
+      },
+      User: {
+        ...accumulator.User,
+        nodes:  accumulator.User.nodes.concat(Object.values(usersNode)),
+      }
     };
-  }, [
-      { Posts: [], },
-      { Users: [], }
-  ]);
+  }, {
+    Post: {
+      id: 'id',
+      name: 'Post',
+      nodes: []
+    },
+    User: {
+      id: 'userId',
+      name: 'User',
+      nodes: []
+    },
+  });
 
-  // create node
   const nodeResources = await resources;
-  const nodeResourcesMapping = Object.entries(nodeResources);
+  const nodeResourcesMapping = Object.values(nodeResources);
 
-  nodeResourcesMapping.forEach((resource) => {
-      const resourceName = resource[0];
-      const resourceData = resource[1];
-
-      resourceData.forEach(node => {
-         createNode({
-          ...node,
-          id: createNodeId(`medium-${resourceName.toLowerCase()}-${node.id}`),
-          parent: null,
-          children: [],
-          internal: {
-            type: `Medium${resourceName}`,
-            content: JSON.stringify(node),
-            contentDigest: crypto
+  nodeResourcesMapping.forEach(resource => {
+    const { name, id, nodes } = resource;
+    // create node
+    nodes.forEach(node => {
+      createNode({
+        ...node,
+        id: createNodeId(`medium-${name.toLowerCase()}-${node[id]}`),
+        parent: null,
+        children: [],
+        internal: {
+          type: `Medium${name}`,
+          content: JSON.stringify(node),
+          contentDigest: crypto
               .createHash('md5')
               .update(JSON.stringify(node))
               .digest('hex')
-          }
-        });
-      })
+        }
+      });
+    });
   });
 };
