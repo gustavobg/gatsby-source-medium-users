@@ -30,7 +30,7 @@ plugins: [
 
 ### Options
 
-#### Username
+#### Usernames
 
 Remember that if you are fetching a user, prepend your username with `@`.
 
