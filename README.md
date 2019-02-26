@@ -30,7 +30,7 @@ plugins: [
 
 ### Options
 
-#### Username
+#### Usernames
 
 Remember that if you are fetching a user, prepend your username with `@`.
 
@@ -68,7 +68,7 @@ query {
 }
 ```
 
-Get all users with their posts:
+Get all users:
 
 ```graphql
 query {
@@ -76,9 +76,6 @@ query {
     edges {
       node {
         name
-        posts {
-          title
-        }
       }
     }
   }
