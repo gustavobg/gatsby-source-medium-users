@@ -1,4 +1,6 @@
 # gatsby-source-medium-users
+[![npm](https://img.shields.io/npm/v/gatsby-plugin-github-ribbon.svg?style=for-the-badge)](https://www.npmjs.com/package/gatsby-source-medium-users) 
+[![npm](https://img.shields.io/npm/dt/gatsby-plugin-github-ribbon.svg?style=for-the-badge)](https://www.npmjs.com/package/gatsby-source-medium-users)
 
 Source plugin for pulling data into Gatsby from an unofficial Medium JSON
 endpoint. Unfortunately the JSON endpoint does not provide the complete stories,
